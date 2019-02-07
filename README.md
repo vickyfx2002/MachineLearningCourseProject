@@ -1,5 +1,5 @@
 # Practical Machine Learning Course Project 
-## This project is to use the training data from the following link 
+This project is to use the training data from the following link 
 https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv 
 to predict the test data from the link below
 https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv

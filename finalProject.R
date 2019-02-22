@@ -1,0 +1,86 @@
+## step 0: setup the environment
+## set a random seed 
+set.seed(42);
+
+## load caret package
+library(caret)
+## Step 1: download the csv files to the current wd and read csv into R
+
+## download the csv files to the current wd
+download.file("https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv", destfile = "training.csv", method = "curl")
+download.file("https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv", destfile = "testing.csv", method = "curl")
+
+## read the csv data into R
+training<-read.csv("training.csv",stringsAsFactors = FALSE);
+testing <- read.csv("testing.csv",stringsAsFactors = FALSE);
+
+## Step 2: clean up the data
+## remove the columns (variables) with too many NAs or blanks from testing and training data
+colna <- which(colSums(is.na(training)) > 0.5*nrow(training)| colSums(training=="")> 0.5*nrow(training));
+trainingclean <- training[,-colna];
+testingclean<-testing[,-colna];
+
+## remove the first column "X" which is simply the  observation No. from training and testing sets.
+trainingclean <- trainingclean[,-1]
+testingclean <-testingclean[,-1];
+
+## remove the last column "problem_id" from the testing data. 
+testingclean <- testingclean[,-59];
+
+## Step 3: use 10-fold cross validation and "rpart" method to train and predict.
+
+modcvrpart<-train(classe~., method="rpart", data=trainingclean, 
+                  trControl=trainControl(method="cv", number=10, 
+                                         verboseIter = FALSE));
+
+### plot rpart tree
+
+plot(modcvrpart$finalModel, uniform = TRUE, main = "Decision Tree using rpart Method");
+text(modcvrpart$finalModel, use.n=TRUE, all=TRUE, cex=.8)
+
+## print out the model for rpart method.
+print(modcvrpart)
+
+## use the rpart model to predict the testing data. 
+predcvrpart <- predict(modcvrpart,testingclean);
+print(predcvrpart)
+
+### Since the accuracy for rpart method is only about 50%, I tried method 2: lda. 
+
+## Step 4: use 10-fold cross validation and "lda" method to train the training data .
+
+modcvlda<-train(classe~., method="lda", data=trainingclean, 
+                trControl=trainControl(method="cv", number=10, 
+                                       verboseIter = FALSE));
+
+## print out the model, and got the model accuracy is 0.8551
+print(modcvlda)
+
+## Step 5: Repeat 10-fold cross-validation 200 times to estimate the out-of-sample error
+acc.vec<-c();
+acc.vec <- replicate(200,{modcvlda<-train(classe~., method="lda", data=trainingclean, 
+                                          trControl=trainControl(method="cv", number=10, 
+                                                                 verboseIter = FALSE));
+modcvlda$results$Accuracy});
+
+## now the acc.vec is vector with 200 accuracy estimates. 
+## plot the histogram of acc.vec
+histogram(acc.vec)
+
+### find out the mean and 95% CI accuracy of the estimated out-of sample error
+
+## find out the mean accuracy to estimate the out-of sample error
+mean.acc <- mean(acc.vec);
+print(paste("mean accuracy is ", mean.acc,sep = ""));
+
+## find out the 95% CI for accuracy to estimate the out-of sample error
+cil <- mean.acc -sd(acc.vec)*1.96;
+ciu <- mean.acc +sd(acc.vec)*1.96;
+print(paste("95 CI for accuracy is (", cil, ",",ciu,")",sep=""));
+
+## Step 6: Use the lda model to predict the testing data. 
+predcvlda <- predict(modcvlda,testingclean);
+print(predcvlda)
+
+## Pleae note that I also tried to use the random forest method, but my computer was too slow to run it. 
+

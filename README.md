@@ -18,5 +18,7 @@ I deleted this column. Similarly, I found the last column ("problem_id") from th
 just the testing observation index, so I deleted it from the testing data. 
 4. I used two methods, i.e., "lda" and "rpart" with 10-cross validation to build the models. 
 "lda" method got an accuracy of 0.8551, while "rpart" method got an accuracy of 0.5057. 
+5. I repeated 10-fold cross validation 200 times to estimate the out-of-sample error for the "lda" method,
+got the mean accuracy and 95% CI for the accuracy. 
 
-Note that the R code is also uploaded here. 
+Note that the R code, index. Rmd, index.html files are attached here too. 
